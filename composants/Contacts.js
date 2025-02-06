@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, FlatList, Button, Pressable, Image } from 'react-native';
+import { Text, StyleSheet, View, FlatList, Button, Pressable, Image, TouchableOpacity, Alert} from 'react-native';
 import { useEffect, useState } from 'react';
 import { useNavigation } from "@react-navigation/native";
 
@@ -13,51 +13,84 @@ const Contacts = ({ route }) => {
 
     useEffect(() => {
         if (route.params) {
-            let tempListe = [...personnes,
-            {
-                id: personnes.length + 1,
-                nom: route.params.nom,
-                prenom: route.params.prenom,
-                numCell: route.params.numCell,
-                numProf: route.params.numProf,
-                email: route.params.email,
-                photo: route.params.photo,
-                defaultNum: route.params.defaultNum,
-            }];
-            setPersonnes(tempListe);
+            if (route.params.updatedContact) {
+                const updatedContact = route.params.updatedContact;
+                setPersonnes((prevPersonnes) =>
+                    prevPersonnes.map((personne) =>
+                        personne.id === updatedContact.id ? updatedContact : personne
+                    )
+                );
+            } else {
+                let tempListe = [...personnes,
+                {
+                    id: personnes.length + 1,
+                    nom: route.params.nom,
+                    prenom: route.params.prenom,
+                    numCell: route.params.numCell,
+                    numProf: route.params.numProf,
+                    email: route.params.email,
+                    photo: route.params.photo,
+                    defaultNum: route.params.defaultNum,
+                }];
+                setPersonnes(tempListe);
+            }
         }
     }, [route.params]);
 
-    const renderItem = ({ item }) => {
-        const imageSource = item.photo ? { uri: item.photo } : require('../assets/profil.png');
 
+    const supprimer = (index) => {
+        Alert.alert(
+            "Confirmation",
+            "Êtes-vous sûr de vouloir supprimer ce contact?",
+            [
+                {
+                    text: "Annuler",
+                    style: "cancel"
+                },
+                {
+                    text: "Supprimer",
+                    onPress: () => {
+                        let nouveau = personnes.filter((personne, i) => i !== index);
+                        setPersonnes(nouveau);
+                    },
+                    style: "destructive"
+                }
+            ]
+        );
+    }
+
+
+
+    const renderItem = ({ item, index }) => {
+        const imageSource = item.photo ? { uri: item.photo } : require('../assets/profil.png');
 
         return (
             <View style={styles.carte}>
-                <Pressable style={styles.ligne}>
+                <TouchableOpacity 
+                    style={styles.ligne}
+                    onLongPress={() => supprimer(index)}
+                    onPress={() => navigation.navigate('Modifier', item)}
+                >
                     <Image source={imageSource} style={styles.image} />
                     <View style={styles.texteContainer}>
                         <Text style={styles.texte}>{item.prenom} {item.nom}</Text>
                         <Text style={styles.texte}>Cell: {item.numCell}{item.defaultNum === "numCell" ? <Image source={require('../assets/cell.png')} style={styles.icon}/> : null} </Text>
-                        
-                        
                         <Text style={styles.texte}>Prof: {item.numProf}{item.defaultNum === "numProf" ? <Image source={require('../assets/cell.png')} style={styles.icon}/> : null}</Text>
                         <Text style={styles.texte}>Email: {item.email}</Text>
                     </View>
-
-                </Pressable>
+                </TouchableOpacity>
             </View>
         );
     };
 
     return (
-        <View>
+        <View style={styles.container}>
             <FlatList
                 data={personnes}
                 renderItem={renderItem}
                 keyExtractor={(item) => item.id.toString()}
             />
-            <Button title="Page Ajouter contact" onPress={() => navigation.navigate('Ajouter')} />
+            <Button title="Ajouter un contact" onPress={() => navigation.navigate('Ajouter')} color="#f4511e" />
         </View>
     );
 };
@@ -65,10 +98,15 @@ const Contacts = ({ route }) => {
 export default Contacts;
 
 const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        backgroundColor: '#f0f0f0',
+    },
     carte: {
         marginBottom: 10,
         padding: 10,
-        backgroundColor: "#dd5d82",
+        backgroundColor: "#CC5500",
         borderRadius: 10,
     },
     ligne: {

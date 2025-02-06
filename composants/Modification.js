@@ -1,17 +1,19 @@
-import { useState } from "react";
-import { Button, Text, View, StyleSheet, TextInput, Switch } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Switch } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
-const AjouterContact = ({ route }) => {
-    const [prenom, setPrenom] = useState("");
-    const [nom, setNom] = useState("");
-    const [numCell, setNumCell] = useState("");
-    const [numProf, setNumProf] = useState("");
-    const [email, setEmail] = useState("");
-    const [photo, setPhoto] = useState("");
-    const [defaultNum, setDefaultNum] = useState("numCell");
+const Modification = ({ route }) => {
+
+    const [prenom, setPrenom] = useState(route.params.prenom);
+    const [nom, setNom] = useState(route.params.nom);
+    const [numCell, setNumCell] = useState(route.params.numCell);
+    const [numProf, setNumProf] = useState(route.params.numProf);
+    const [email, setEmail] = useState(route.params.email);
+    const [photo, setPhoto] = useState(route.params.photo);
+    const [defaultNum, setDefaultNum] = useState(route.params.defaultNum);
     const [erreurs, setErreurs] = useState({});
     const navigation = useNavigation();
+
 
     const valider = () => {
         const tempsErreurs = {};
@@ -39,17 +41,28 @@ const AjouterContact = ({ route }) => {
 
     const soumettre = () => {
         if (valider()) {
-            const newId = route.params?.personnes?.length ? route.params.personnes.length + 1 : 1;
             navigation.popToTop();
-            navigation.navigate('Accueil', { id: newId, nom, prenom, numCell, numProf, email, photo, defaultNum });
+            navigation.navigate('Accueil', {
+                updatedContact: {
+                    id: route.params.id,
+                    nom,
+                    prenom,
+                    numCell,
+                    numProf,
+                    email,
+                    photo,
+                    defaultNum,
+                }
+            });
         } else {
             console.log("Le formulaire n'est pas valide");
         }
     };
 
+
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Ajouter un contact</Text>
+            <Text style={styles.title}>Modifier un contact</Text>
             <TextInput style={styles.input} placeholder="Prenom" value={prenom} onChangeText={setPrenom} />
             {erreurs.erreurPrenom && <Text style={styles.erreur}>{erreurs.erreurPrenom}</Text>}
             <TextInput style={styles.input} placeholder="Nom" value={nom} onChangeText={setNom} />
@@ -60,7 +73,7 @@ const AjouterContact = ({ route }) => {
             {erreurs.erreurNumProf && <Text style={styles.erreur}>{erreurs.erreurNumProf}</Text>}
             <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} />
             {erreurs.erreurEmail && <Text style={styles.erreur}>{erreurs.erreurEmail}</Text>}
-            <TextInput style={styles.input} placeholder="Photo URL" value={photo} onChangeText={setPhoto} />
+            <TextInput style={styles.input} placeholder="photo" value={photo} onChangeText={setPhoto} />
 
             <View style={styles.switchContainer}>
                 <Text style={styles.switchLabel}>Numéro par défaut: {defaultNum === "numCell" ? "Cellulaire" : "Professionnel"}</Text>
@@ -70,12 +83,13 @@ const AjouterContact = ({ route }) => {
                 />
             </View>
 
-            <Button title="Ajouter" onPress={soumettre} color="#f4511e" />
+            <Button title="Modifier" onPress={soumettre} color="#f4511e" />
+
         </View>
     );
 };
 
-export default AjouterContact;
+export default Modification;
 
 const styles = StyleSheet.create({
     container: {
